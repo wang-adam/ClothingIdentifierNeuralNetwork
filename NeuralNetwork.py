@@ -2,19 +2,11 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import ConvertImage
+import cv2
 
 # Image to test Neural Network on. It gets compressed into a 28x28 matrix
-this_image = ConvertImage.compress("shoe.jpg")
+compressed_image, normal_image = ConvertImage.compress("coat.jpg")
 
-# Dataset to train the network on.
-fashion_mnist = tf.keras.datasets.fashion_mnist
-
-(train_images, train_labels), (test_images,
-                               test_labels) = fashion_mnist.load_data()
-
-# We want all the values to be between 0 and 1.0
-train_images = train_images / 255.0
-test_images = test_images / 255.0
 
 # Category Names
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
@@ -34,15 +26,24 @@ model = tf.keras.Sequential([
 # Load the model from disk or train the model if none:
 try:
     model.load_weights('model.weights')
-    print("Model Weights Loaded")
+    print("\n Model Weights Loaded... \n")
 except:
+    # Dataset to train the network on.
+    fashion_mnist = tf.keras.datasets.fashion_mnist
+
+    (train_images, train_labels), (test_images,
+                                   test_labels) = fashion_mnist.load_data()
+
+    # We want all the values to be between 0 and 1.0
+    train_images = train_images / 255.0
+    test_images = test_images / 255.0
     model.compile(optimizer='adam',
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(
                       from_logits=True),
                   metrics=['accuracy'])
-    print("Training Model...")
+    print("\n Training Model... \n")
     # Fit the model with the training data
-    model.fit(train_images, train_labels, epochs=20)
+    model.fit(train_images, train_labels, epochs=20, verbose=1)
     # Save the model to disk.
     model.save_weights('model.weights')
 
@@ -78,13 +79,13 @@ def plot_value_array(predictions_array):
 probability_model = tf.keras.Sequential([model,
                                          tf.keras.layers.Softmax()])
 
-predictions = probability_model.predict(this_image)
+predictions = probability_model.predict(compressed_image)
 
 # Plot the first X test images and their predicted labels.
 
 
 plt.subplot(1, 2, 1)
-plot_image(predictions[0], this_image[0])
+plot_image(predictions[0], normal_image)
 plt.subplot(1, 2, 2)
 plot_value_array(predictions[0])
 plt.tight_layout()
